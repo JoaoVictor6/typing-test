@@ -22,6 +22,7 @@ main {
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all .2s;
   background: var(--main-bg-color);
   color: var(--text-color)
 }
@@ -50,4 +51,19 @@ main {
   bottom: 36px;
   right: 48px;
 
+}
+
+.switch-theme {
+  position: absolute;
+  top: 18px;
+  right: 24px;
+
+  width: 36px;
+  height: 36px;
+  border-radius: 100%;
+  cursor: pointer;
+}
+
+.moon {
+  display: none;
 }
