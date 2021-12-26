@@ -67,3 +67,19 @@ main {
 .moon {
   display: none;
 }
+
+@keyframes appear {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.score-area {
+  transition: all .3s;
+}
+.score-area > p {
+  animation: appear .3s;
+}
