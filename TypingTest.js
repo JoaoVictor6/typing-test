@@ -1,48 +1,111 @@
-class TypingTest {
-  /**
-   * @param {string[]} wordArray The array
-   * @param {Element} elementForOutput
-    */
-  constructor(wordArray, elementForOutput){
-    this._arrayLenght = wordArray.length
-    this._currentArrayPosition = 0
-    this._sanitizeArrayWords = wordArray.map(item => {
-      return item.split('')
-        .map((item, index) => ({letter: item, isHighlighted: false, id: index}))
-    })
-    this._letterListen = 0
+/**
+ * @param {string[]} arr
+ * @returns {{
+ *  letter:string
+ *  id: number
+ *  isHighlighted: boolean
+ * }[]}
+ */
+function wordSanitize(arr){
+  const sanitized = arr.map(item => {
+    return item.split('')
+    .map((item, index) => ({letter: item, isHighlighted: false, id: index}))
+  })
+  return sanitized
+}
+/**
+ * 
+ * @param {Element} domArea 
+ * @param {string[]} sanitizeWords
+ */
+function renderWords(domArea, sanitizeWords){
+  domArea.innerHTML = ''
+  sanitizeWords.forEach(item => {
+    const paragraph = document.createElement('p')
+    paragraph.id = item.id
+    paragraph.innerHTML = item.letter
+    if(item.isHighlighted) {paragraph.classList.add('highlighted-letter')}
+    return domArea.appendChild(paragraph)
+  })
+}
 
-    this._currentWord = this._sanitizeArrayWords[this._currentArrayPosition]
-    this._elementForOutput = elementForOutput
-  }
-
-  generateTextOutput(){
-    this._elementForOutput.innerHTML = ""
-    return this._currentWord
-      .map(item => {
-        const p = document.createElement('p')
-        p.id = item.id
-        p.innerHTML = item.letter
-        if(item.isHighlighted) {p.classList.add('highlighted-letter')}
-        return this._elementForOutput.appendChild(p)
-      })
-  }
+/**
+ * @param {{
+ *  letter:string
+ *  id: number
+ *  isHighlighted: boolean
+ * }[][]} wordsArr
+ */
+function renderScore(wordsArr){
+  const scoreOutput = document.querySelector('.score-area')
   
-  /**
-   * @param {string} key
-   */
-  listen(key){
-    if(this._letterListen === this._currentWord.length) {
-      this._currentWord = this._sanitizeArrayWords[++this._currentArrayPosition]
-      this._letterListen = 0
-      this.generateTextOutput()
-      return
+  scoreOutput.innerHTML = ''
+  wordsArr.forEach(item => {
+    const isHighlighted = item.every(item => item.isHighlighted)
+    if(isHighlighted){
+      const paragraph = document.createElement('p')
+      paragraph.textContent = item.reduce((prev,curr) => prev+curr.letter,'')
+      scoreOutput.appendChild(paragraph)
     }
-    if(this._currentWord[this._letterListen].letter === key){
-      this._currentWord[this._letterListen].isHighlighted = true
-      this._letterListen++
-      this.generateTextOutput()
+  })
+}
+
+/**
+  * @param {string[]} arr
+  * @param {Element} outputArea
+*/
+function typingGame(arr, outputArea) {
+  let words = wordSanitize(arr)
+  
+  const currWord = new Proxy({
+    current: 0,
+    currentLetter: 0
+  }, {
+    set: (obj, prop, value) => {
+      if(prop === 'currentLetter' || prop === 'current'){
+        if(words[obj.current].length-1 <= obj.currentLetter){
+          
+          if(!words[obj.current+1]){
+            words = wordSanitize(arr)
+            obj.current = 0
+            obj.currentLetter = 0
+            renderWords(outputArea, words[obj.current])
+            renderScore(words)
+            return
+          }
+          obj.current += 1
+          obj.currentLetter = 0
+          renderWords(outputArea, words[obj.current])
+          renderScore(words)
+          return
+        }
+        // renderScore(words)
+        renderWords(outputArea, words[obj.current])
+      }
+
+      obj[prop] = value
+
+      return true
+    }
+  })
+
+  renderWords(outputArea, words[currWord.current])
+  return {
+    listen:(key) => {
+      length = words[currWord.current].length
+      currLetter = words[currWord.current][currWord.currentLetter]
+
+      if(length < currWord.currentLetter){
+        currWord.currentLetter = 0
+      }
+      if(words[currWord.current][currWord.currentLetter].letter === key){
+        words[currWord.current][currWord.currentLetter].isHighlighted = true
+        currWord.currentLetter += 1
+
+        if(words[currWord.current].length === currWord.currentLetter){
+          currWord.current += 1
+        } 
+      }
     }
   }
-
 }
